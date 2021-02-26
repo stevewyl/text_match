@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 # 模型
 model = SentenceTransformer("distiluse-base-multilingual-cased")
-model_save_path = '../output/sbert_OnlineConstrativeLoss-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+model_save_path = '../../user_data/model_data/sbert_OnlineConstrativeLoss-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 os.makedirs(model_save_path, exist_ok=True)
 num_epochs = 5
 train_batch_size = 64

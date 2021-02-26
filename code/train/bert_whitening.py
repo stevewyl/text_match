@@ -104,14 +104,18 @@ while True:
         break
 
 # 取倒数两层的结果
-n_last, outputs = 2, []
-for i in range(n_last):
-    outputs.append(GlobalAveragePooling1D()(encoder_layers[-i]))
+n_last = 1
+if n_last > 1:
+    outputs = []
+    for i in range(n_last):
+        outputs.append(GlobalAveragePooling1D()(encoder_layers[-i]))
+    output = keras.layers.Average()(outputs)
+else:
+    output = GlobalAveragePooling1D()(encoder_layers[-1])
 
-output = keras.layers.Average()(outputs)
 # 最后的编码器
 encoder = Model(bert.inputs, output)
-print(encoder.summary())
+# print(encoder.summary())
 
 # 读取数据
 texts, labels = load_data("../../tcdata/oppo_breeno_round1_data/train.tsv", has_label=True)
@@ -131,12 +135,14 @@ for name, data in datasets.items():
 
 # 计算变换矩阵和偏置项
 kernel, bias = compute_kernel_bias([v for vecs in all_vecs for v in vecs])
+# TODO: 保存kernel和bias向量
+
 
 # 变换，标准化，相似度
 sim_scores = []
 for name, (a_vecs, b_vecs), labels in zip(all_names, all_vecs, all_labels):
-    a_vecs = transform_and_normalize(a_vecs, kernel, bias)
-    b_vecs = transform_and_normalize(b_vecs, kernel, bias)
+    a_vecs = transform_and_normalize(a_vecs, None, bias)
+    b_vecs = transform_and_normalize(b_vecs, None, bias)
     sims = (a_vecs * b_vecs).sum(axis=1)
     y_preds = [1 if score > 0.5 else 0 for score in sims]
     f1 = f1_score(labels, y_preds) * 100

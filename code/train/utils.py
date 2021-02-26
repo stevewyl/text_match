@@ -42,5 +42,5 @@ def auc_score(y_trues, y_preds):
     match_cnt = sum(y_trues)
     mismatch_cnt = len(y_trues) - match_cnt
     rank_scores = [itemgetter(0)(t) for t in sorted(enumerate(y_preds, 1), key=itemgetter(1))]
-    rank_scores = [score - match_cnt * (1 + match_cnt) / 2 for score in rank_scores]
-    return sum(rank_scores) / (match_cnt * mismatch_cnt)
+    pos_rank_scores = [rank for rank, label in zip(rank_scores, y_trues) if label == 1]
+    return (sum(pos_rank_scores) - (1 + match_cnt) / 2) / (match_cnt * mismatch_cnt)

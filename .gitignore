@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 .vscode
 output/*
+user_data/*
+predition_result/*
