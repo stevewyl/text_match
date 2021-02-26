@@ -6,6 +6,7 @@ Refer from: https://sbert.net/examples/training/cross-encoder/README.html
 import logging
 import math
 import os
+import sys
 from datetime import datetime
 
 from sentence_transformers.cross_encoder import CrossEncoder
@@ -16,6 +17,12 @@ from torch.utils.data import DataLoader
 
 from utils import load_data, get_train_valid
 
+plm = sys.argv[1]
+plm_names = {
+    "roberta": "hfl/chinese-roberta-wwm-ext",
+    "macbert": "hfl/chinese-macbert-base"
+}
+
 # 日志
 logging.basicConfig(format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
@@ -24,8 +31,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
 logger = logging.getLogger(__name__)
 
 # 模型
-# 模型列表: hfl/chinese-macbert-base, hfl/chinese-roberta-wwm-ext
-model = CrossEncoder("hfl/chinese-roberta-wwm-ext", num_labels=1, max_length=40)
+model = CrossEncoder(plm_names[plm], num_labels=1, max_length=40)
 model_save_path = 'output/cross_encoder_roberta_CELoss-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 os.makedirs(model_save_path, exist_ok=True)
 num_epochs = 5
@@ -47,8 +53,11 @@ evaluator = CEBinaryClassificationEvaluator.from_input_examples(dev_samples, nam
 # 训练
 warmup_steps = math.ceil(len(train_dataloader) * num_epochs * 0.1)
 logger.info("Warmup-steps: {}".format(warmup_steps))
-model.fit(train_dataloader=train_dataloader,
-          evaluator=evaluator,
-          epochs=num_epochs,
-          warmup_steps=warmup_steps,
-          output_path=model_save_path)
+model.fit(
+    train_dataloader=train_dataloader,
+    evaluator=evaluator,
+    epochs=num_epochs,
+    evaluation_steps=500,
+    warmup_steps=warmup_steps,
+    output_path=model_save_path
+)

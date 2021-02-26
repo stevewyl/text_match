@@ -4,6 +4,7 @@ Refer from: https://sbert.net/examples/training/quora_duplicate_questions/README
 """
 
 import logging
+import math
 import os
 from datetime import datetime
 
@@ -52,9 +53,13 @@ binary_acc_evaluator = evaluation.BinaryClassificationEvaluator(
     dev_sentences1, dev_sentences2, dev_labels)
 
 # 训练
+warmup_steps = math.ceil(len(train_dataloader) * num_epochs * 0.1)
+logger.info("Warmup-steps: {}".format(warmup_steps))
 model.fit(
     train_objectives=[(train_dataloader, train_loss)],
     evaluator=binary_acc_evaluator,
-    epochs=num_epochs, warmup_steps=1000,
+    epochs=num_epochs,
+    evaluation_steps=500,
+    warmup_steps=warmup_steps,
     output_path=model_save_path
 )

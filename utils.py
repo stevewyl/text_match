@@ -1,5 +1,6 @@
 
 from collections import Counter
+from operator import itemgetter
 
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -36,8 +37,10 @@ def get_train_valid(texts, labels, test_size=0.05):
     return x_train, x_valid, y_train, y_valid
 
 
-def auc(y_trues, y_preds):
+def auc_score(y_trues, y_preds):
     y_trues = list(map(int, y_trues))
     match_cnt = sum(y_trues)
     mismatch_cnt = len(y_trues) - match_cnt
-    return (sum(y_preds) - match_cnt * (1 + match_cnt) / 2) / (match_cnt * mismatch_cnt)
+    rank_scores = [itemgetter(0)(t) for t in sorted(enumerate(y_preds, 1), key=itemgetter(1))]
+    rank_scores = [score - match_cnt * (1 + match_cnt) / 2 for score in rank_scores]
+    return sum(rank_scores) / (match_cnt * mismatch_cnt)
