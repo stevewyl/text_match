@@ -36,7 +36,7 @@ train_loss = losses.OnlineContrastiveLoss(
     model=model, distance_metric=distance_metric, margin=margin)
 
 # 数据
-texts, labels = load_data("data/gaiic_track3/round1_train.tsv", has_label=True)
+texts, labels = load_data("../../tcdata/oppo_breeno_round1_data/train.tsv", has_label=True)
 x_train, x_valid, y_train, y_valid = get_train_valid(texts, labels)
 train_samples = [InputExample(texts=x, label=int(y)) for x, y in zip(x_train, y_train)]
 train_dataloader = DataLoader(train_samples, shuffle=True, batch_size=train_batch_size)

@@ -33,7 +33,7 @@ def load_data(filename, has_label=False):
 
 def get_train_valid(texts, labels, test_size=0.05):
     x_train, x_valid, y_train, y_valid = train_test_split(
-        texts, labels, stratify=labels, test_size=test_size)
+        texts, labels, stratify=labels, test_size=test_size, random_state=2021)
     return x_train, x_valid, y_train, y_valid
 
 

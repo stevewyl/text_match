@@ -38,7 +38,7 @@ num_epochs = 5
 train_batch_size = 64
 
 # 数据
-texts, labels = load_data("data/gaiic_track3/round1_train.tsv", has_label=True)
+texts, labels = load_data("../../train.tsv", has_label=True)
 x_train, x_valid, y_train, y_valid = get_train_valid(texts, labels)
 train_samples = []
 for (text_a, text_b), label in zip(x_train, y_train):

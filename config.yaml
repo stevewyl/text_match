@@ -1,3 +1,0 @@
-model_path:
-  bert_base: 
-  sbert: distiluse-base-multilingual-cased

@@ -70,12 +70,17 @@ def transform_and_normalize(vecs, kernel=None, bias=None):
 
 # bert配置
 model_name = sys.argv[1]
+env = sys.argv[2] or "home"
 model_full_name = {
     "roberta": "chinese_roberta_wwm_ext_L-12_H-768_A-12",
     "macbert": "chinese_macbert_base"
 }
+env_base_dir = {
+    "home": "/media/stevewyl/Extreme SSD/work",
+    "jd": "/home/wyl/disk0"
+}
 # 根据你模型的存放位置进行修改
-model_dir = f"/media/stevewyl/Extreme SSD/work/bert_models/{model_full_name[model_name]}"
+model_dir = f"{env_base_dir[env]}/bert_models/{model_full_name[model_name]}"
 config_path = f"{model_dir}/bert_config.json"
 checkpoint_path =  f"{model_dir}/bert_model.ckpt"
 dict_path =  f"{model_dir}/vocab.txt"
@@ -109,7 +114,7 @@ encoder = Model(bert.inputs, output)
 print(encoder.summary())
 
 # 读取数据
-texts, labels = load_data("data/gaiic_track3/round1_train.tsv", has_label=True)
+texts, labels = load_data("../../tcdata/oppo_breeno_round1_data/train.tsv", has_label=True)
 x_train, x_valid, y_train, y_valid = get_train_valid(texts, labels)
 datasets = {
     "train": [x + [int(y)] for x, y in zip(x_train, y_train)],
