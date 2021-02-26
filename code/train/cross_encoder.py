@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 # 模型
 model = CrossEncoder(plm_names[plm], num_labels=1, max_length=40)
-model_save_path = 'output/cross_encoder_roberta_CELoss-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+model_save_path = '../output/cross_encoder_roberta_CELoss-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 os.makedirs(model_save_path, exist_ok=True)
 num_epochs = 5
 train_batch_size = 64
