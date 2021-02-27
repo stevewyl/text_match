@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-def load_data(filename, has_label=False):
+def load_data(filename, has_label=False, verbose=False):
     texts, labels = [], []
     seq_lengths = []
     for line in open(filename, "r", encoding="utf-8"):
@@ -22,10 +22,12 @@ def load_data(filename, has_label=False):
     seq_len_50 = int(np.mean(seq_lengths))
     seq_len_90 = np.percentile(seq_lengths, 90)
     seq_len_99 = np.percentile(seq_lengths, 99)
-    print(f"序列长度 50%/90%/99%: {seq_len_50}/{seq_len_90}/{seq_len_99}")
+    if verbose:
+        print(f"序列长度 50%/90%/99%: {seq_len_50}/{seq_len_90}/{seq_len_99}")
 
     if has_label:
-        print("标签分布比例: ", dict(Counter(labels)))
+        if verbose:
+            print("标签分布比例: ", dict(Counter(labels)))
         return texts, labels
     else:
         return texts

@@ -130,4 +130,4 @@ dmypy.json
 .vscode
 output/*
 user_data/*
-predition_result/*
+prediction_result/*
