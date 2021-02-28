@@ -10,14 +10,17 @@ from datetime import datetime
 
 import numpy as np
 import scipy.stats
+import tensorflow as tf
 from bert4keras.backend import keras, K
 from bert4keras.tokenizers import Tokenizer
 from bert4keras.models import build_transformer_model
 from bert4keras.snippets import sequence_padding
 from keras.models import Model
-from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
 
-from utils import load_data, get_train_valid, auc_score
+from utils import load_data, get_train_valid
+
+tf.config.experimental.set_memory_growth(tf.config.list_physical_devices('GPU')[0], True)
 
 
 class GlobalAveragePooling1D(keras.layers.GlobalAveragePooling1D):
@@ -44,9 +47,11 @@ def convert_to_vecs(encoder, data, maxlen=64):
     b_token_ids = sequence_padding(b_token_ids)
     a_vecs = encoder.predict([a_token_ids,
                               np.zeros_like(a_token_ids)],
+                             batch_size=1024,
                              verbose=True)
     b_vecs = encoder.predict([b_token_ids,
                               np.zeros_like(b_token_ids)],
+                             batch_size=1024,
                              verbose=True)
     return a_vecs, b_vecs, np.array(labels)
 
@@ -131,7 +136,7 @@ tokenizer = Tokenizer(dict_path, do_lower_case=True)
 encoder = get_encoder(config_path, checkpoint_path, args.last_layer)
 
 # 读取数据
-texts, labels = load_data("../../tcdata/oppo_breeno_round1_data/train.tsv", has_label=True)
+texts, labels = load_data("../tcdata/oppo_breeno_round1_data/train.tsv", has_label=True)
 x_train, x_valid, y_train, y_valid = get_train_valid(texts, labels)
 datasets = {
     "train": [x + [int(y)] for x, y in zip(x_train, y_train)],
@@ -150,7 +155,8 @@ if args.whiten:
     # 计算变换矩阵和偏置项
     kernel, bias = compute_kernel_bias([v for vecs in all_vecs for v in vecs], args.dim)
     # 保存kernel和bias向量
-    save_path = '../../user_data/model_data/bert_whitening-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    save_path = f"../user_data/model_data/bert_whitening-{args.plm}-{timestamp}"
     os.makedirs(save_path, exist_ok=True)
     np.save(save_path + "/kernel.npy", kernel)
     np.save(save_path + "/bias.npy", bias)
@@ -167,8 +173,10 @@ if args.whiten:
 else:
     kernel = None
     bias = None
+    save_path = None
 
 # 变换，标准化，相似度
+results = []
 for name, (a_vecs, b_vecs), labels in zip(all_names, all_vecs, all_labels):
     a_vecs = transform_and_normalize(a_vecs, kernel, bias)
     b_vecs = transform_and_normalize(b_vecs, kernel, bias)
@@ -177,5 +185,13 @@ for name, (a_vecs, b_vecs), labels in zip(all_names, all_vecs, all_labels):
     f1 = f1_score(labels, y_preds) * 100
     precision = precision_score(labels, y_preds) * 100
     recall = recall_score(labels, y_preds) * 100
-    auc = auc_score(labels, sims) * 100
+    auc = roc_auc_score(labels, sims) * 100
     print(f"[{name}] F1/Precison/Recall/Auc: {f1:.2f}/{precision:.2f}/{recall:.2f}/{auc:.2f}")
+    results.append([name, f1, precision, recall, auc])
+
+if save_path:
+    result_fn = f"{save_path}/result.csv"
+    with open(result_fn, "w") as fw:
+        fw.write("\t".join(["dataset_name", "f1", "precision", "recall", "auc"]))
+        for res in results:
+            fw.write("\t".join([str(v) if type(v) == np.float64 else v for v in res]) + "\n")

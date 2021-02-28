@@ -103,8 +103,8 @@ a_vecs, b_vecs = convert_to_vecs(encoder, texts, 40)
 # 变换，标准化，相似度
 a_vecs = transform_and_normalize(a_vecs, kernel, bias)
 b_vecs = transform_and_normalize(b_vecs, kernel, bias)
-sims = (a_vecs * b_vecs).sum(axis=1)
+scores = (a_vecs * b_vecs).sum(axis=1)
 # 保存结果
-with open("../prediction_result/result_whiten.txt", "w") as fw:
-    for score in sims:
+with open("../prediction_result/result_whiten.tsv", "w") as fw:
+    for score in scores:
         fw.write(str(score) + "\n")
