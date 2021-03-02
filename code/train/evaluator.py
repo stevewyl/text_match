@@ -17,7 +17,7 @@ class AUCEvaluator:
     Given sentence pairs and binary labels (0 and 1),
     it compute the the best possible auc score
     """
-    def __init__(self, sentence_pairs: List[List[str]], labels: List[int], interactive: bool, name: str=''):
+    def __init__(self, sentence_pairs: List[List[str]], labels: List[int], interactive: bool=True, name: str=''):
         assert len(sentence_pairs) == len(labels)
         for label in labels:
             assert (label == 0 or label == 1)

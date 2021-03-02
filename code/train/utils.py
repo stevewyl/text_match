@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-def load_data(filename, has_label=False, verbose=False):
+def load_data(filename, has_label=False, verbose=False, pure_id=False):
     texts, labels = [], []
     seq_lengths = []
     for line in open(filename, "r", encoding="utf-8"):
@@ -16,6 +16,9 @@ def load_data(filename, has_label=False, verbose=False):
             labels.append(label)
         else:
             text_a, text_b = line.split("\t", 1)
+        if pure_id:
+            text_a = text_a.split(" ")
+            text_b = text_b.split(" ")
         texts.append([text_a, text_b])
         seq_lengths.append(len(text_a) + len(text_b) + 3)
 

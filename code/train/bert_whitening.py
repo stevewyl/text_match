@@ -192,6 +192,6 @@ for name, (a_vecs, b_vecs), labels in zip(all_names, all_vecs, all_labels):
 if save_path:
     result_fn = f"{save_path}/result.csv"
     with open(result_fn, "w") as fw:
-        fw.write("\t".join(["dataset_name", "f1", "precision", "recall", "auc"]))
+        fw.write(",".join(["dataset_name", "f1", "precision", "recall", "auc"]) + "\n")
         for res in results:
-            fw.write("\t".join([str(v) if type(v) == np.float64 else v for v in res]) + "\n")
+            fw.write(",".join([str(v) if type(v) == np.float64 else v for v in res]) + "\n")
