@@ -13,7 +13,15 @@ Text Match Model Zoos
 
 ```bash
 cd code
-bash train.sh
+# Training model
+# supported model names
+# sbert, cross_encoder, bert_scratch, whiten
+# supported PLM
+# roberta, macbert, distill, bert_scratch
+bash train.sh {MODEL_NAME} {PLM} {BATCH_SIZE}
+
+# Predictions
+bash test.sh {MODEL} {MODEL_VERSION} {TEST_FILE}
 ```
 
 ## Performance
@@ -26,6 +34,7 @@ Model              | Loss                   | PLM                         | Best
 ------------------ | :-------------------:  | :-------------------------: | :-------------: | :----: | :-----: | :-------
 Cross-Encoder      | CELoss                 | Roberta-wwm-ext             | 3-2000          | 89.36  | 97.43   |
 Cross-Encoder      | CELoss                 | MacBERT-base                | 3-2500          | 89.86  | 97.69   |
+Cross-Encoder      | CELoss                 | BERT-scratch                | 4-1000          | 75.39  | 87.63   |
 SBERT              | ConstractiveLoss       | Distiluse-base-multilingual | 4-1500          | 86.05  | 95.93   |
 SBERT              | OnlineConstractiveLoss | Distiluse-base-multilingual | 4-500           | 86.34  | 95.97   |
 SBERT              | OnlineConstractiveLoss | MacBERT-base                | 3-1500          | 88.32  | 96.99   |

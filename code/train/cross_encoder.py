@@ -11,11 +11,12 @@ import sys
 from datetime import datetime
 
 from sentence_transformers import LoggingHandler, evaluation
-from sentence_transformers.cross_encoder import CrossEncoder
+# from sentence_transformers.cross_encoder import CrossEncoder
 from sentence_transformers.cross_encoder.evaluation import CEBinaryClassificationEvaluator
 from sentence_transformers.readers import InputExample
 from torch.utils.data import DataLoader
 
+from Cross_Encoder import CrossEncoder
 from evaluator import AUCEvaluator
 from utils import load_data, get_train_valid
 
@@ -31,20 +32,26 @@ arg_parser.add_argument("-p", "--plm", type=str, default="distill", help="pretra
 arg_parser.add_argument("-e", "--epoches", type=int, default=5, help="number of training epoches")
 arg_parser.add_argument("-b", "--batch_size", type=int, default=64, help="training batch size")
 arg_parser.add_argument("-s", "--max_length", type=int, default=40, help="max input sequence length")
+arg_parser.add_argument("--scratch", action="store_true", help="whether to train model from scratch")
 args = arg_parser.parse_args()
 
 # 模型
 model_full_name = {
     "roberta": "hfl/chinese-roberta-wwm-ext",
-    "macbert": "hfl/chinese-macbert-base"
+    "macbert": "hfl/chinese-macbert-base",
+    "bert_scratch": "./train/bert_scratch"
 }
-model = CrossEncoder(model_full_name[args.plm], num_labels=1, max_length=args.max_length)
+model = CrossEncoder(model_full_name[args.plm], num_labels=1, max_length=args.max_length, from_scratch=args.scratch)
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 model_save_path = f"../user_data/model_data/cross_encoder-{args.plm}-{timestamp}"
 os.makedirs(model_save_path, exist_ok=True)
 
 # 数据
-texts, labels = load_data("../tcdata/oppo_breeno_round1_data/train.tsv", has_label=True)
+if args.scratch:
+    fn = "train_id.tsv"
+else:
+    fn = "train.tsv"
+texts, labels = load_data(f"../tcdata/oppo_breeno_round1_data/{fn}", has_label=True)
 x_train, x_valid, y_train, y_valid = get_train_valid(texts, labels)
 train_samples = []
 for (text_a, text_b), label in zip(x_train, y_train):

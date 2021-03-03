@@ -24,7 +24,8 @@ model = CrossEncoder(f"../user_data/model_data/cross_encoder-{model_version}",
                      num_labels=1, max_length=40)
 
 # 读取数据
-sentence_pairs = load_data("../tcdata/oppo_breeno_round1_data/testA.tsv")
+test_file = sys.argv[2]
+sentence_pairs = load_data(f"../tcdata/oppo_breeno_round1_data/{test_file}")
 
 # 模型预测
 scores = predict(model, sentence_pairs)
