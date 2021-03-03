@@ -45,15 +45,19 @@ os.makedirs(model_save_path, exist_ok=True)
 # 损失函数
 distance_metric = losses.SiameseDistanceMetric.COSINE_DISTANCE
 margin = 0.5
+label_type_map = lambda x: int(x)
 if args.loss == "contrastive":
     train_loss = losses.ContrastiveLoss(model, distance_metric, margin)
 elif args.loss == "online-contrastive":
     train_loss = losses.OnlineContrastiveLoss(model, distance_metric, margin)
+elif args.loss == "cosine":
+    train_loss = losses.CosineSimilarityLoss(model)
+    label_type_map = lambda x: float(x)
 
 # 数据
 texts, labels = load_data("../tcdata/oppo_breeno_round1_data/train.tsv", has_label=True)
 x_train, x_valid, y_train, y_valid = get_train_valid(texts, labels)
-train_samples = [InputExample(texts=x, label=int(y)) for x, y in zip(x_train, y_train)]
+train_samples = [InputExample(texts=x, label=label_type_map(y)) for x, y in zip(x_train, y_train)]
 train_dataloader = DataLoader(train_samples, shuffle=True, batch_size=args.batch_size)
 
 # 评估器
@@ -63,7 +67,7 @@ dev_labels = []
 for (text_a, text_b), label in zip(x_valid, y_valid):
     dev_sentences1.append(text_a)
     dev_sentences2.append(text_b)
-    dev_labels.append(int(label))
+    dev_labels.append(label_type_map(label))
 evaluators = []
 binary_acc_evaluator = evaluation.BinaryClassificationEvaluator(
     dev_sentences1, dev_sentences2, dev_labels)
