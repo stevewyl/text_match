@@ -41,6 +41,7 @@ SBERT              | ConstractiveLoss       | Distiluse-base-multilingual | 4-15
 SBERT              | OnlineConstractiveLoss | Distiluse-base-multilingual | 4-500           | 86.34  | 95.97   |
 SBERT              | OnlineConstractiveLoss | MacBERT-base                | 3-1500          | 88.32  | 96.99   |
 SBERT              | OnlineConstractiveLoss | Roberta-wwm-ext             | 4-2500          | 88.26  | 96.93   |
+SBERT              | OnlineConstractiveLoss | BERT-scratch                | 4-2500          | 76.52  | 89.50   |
 
 #### Unsupervised
 

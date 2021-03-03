@@ -11,12 +11,11 @@ import sys
 from datetime import datetime
 
 from sentence_transformers import LoggingHandler, evaluation
-# from sentence_transformers.cross_encoder import CrossEncoder
 from sentence_transformers.cross_encoder.evaluation import CEBinaryClassificationEvaluator
 from sentence_transformers.readers import InputExample
 from torch.utils.data import DataLoader
 
-from Cross_Encoder import CrossEncoder
+from custom.cross_encoder import CrossEncoder
 from evaluator import AUCEvaluator
 from utils import load_data, get_train_valid
 
@@ -31,7 +30,7 @@ arg_parser = argparse.ArgumentParser(description="Supervised Text Similarity (Cr
 arg_parser.add_argument("-p", "--plm", type=str, default="distill", help="pretrained language model name")
 arg_parser.add_argument("-e", "--epoches", type=int, default=5, help="number of training epoches")
 arg_parser.add_argument("-b", "--batch_size", type=int, default=64, help="training batch size")
-arg_parser.add_argument("-s", "--max_length", type=int, default=40, help="max input sequence length")
+arg_parser.add_argument("-s", "--max_length", type=int, default=32, help="max input sequence length")
 arg_parser.add_argument("--scratch", action="store_true", help="whether to train model from scratch")
 args = arg_parser.parse_args()
 

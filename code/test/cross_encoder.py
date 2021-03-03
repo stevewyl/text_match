@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 
 from sentence_transformers import CrossEncoder
 
@@ -31,6 +32,7 @@ sentence_pairs = load_data(f"../tcdata/oppo_breeno_round1_data/{test_file}")
 scores = predict(model, sentence_pairs)
 
 # 输出结果
-with open("../prediction_result/result_cross_encoder.tsv", "w") as fw:
+timestamp = datetime.now().strftime("%m%d")
+with open(f"../prediction_result/result_cross_encoder_{timestamp}.tsv", "w") as fw:
     for score in scores:
         fw.write(str(score) + "\n")

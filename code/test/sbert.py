@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import paired_cosine_distances
@@ -26,15 +27,17 @@ def predict(model, data, batch_size=1024):
 
 # 加载模型
 model_version = sys.argv[1]
-model = SentenceTransformer(f"../user_data/model_data/sbert_{model_version}")
+model = SentenceTransformer(f"../user_data/model_data/sbert-{model_version}")
 
 # 读取数据
-sent1, sent2 = load_data("../tcdata/oppo_breeno_round1_data/testA.tsv")
+test_file = sys.argv[2]
+sent1, sent2 = load_data(f"../tcdata/oppo_breeno_round1_data/{test_file}")
 
 # 模型预测
 scores = predict(model, (sent1, sent2))
 
 # 输出结果
-with open("../prediction_result/result_sbert.tsv", "w") as fw:
+timestamp = datetime.now().strftime("%m%d")
+with open(f"../prediction_result/result_sbert_{timestamp}.tsv", "w") as fw:
     for score in scores:
         fw.write(str(score) + "\n")

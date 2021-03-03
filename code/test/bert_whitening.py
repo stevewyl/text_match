@@ -1,5 +1,6 @@
 import json
 import sys
+from datetime import datetime
 
 import numpy as np
 from bert4keras.backend import keras, K
@@ -105,6 +106,7 @@ a_vecs = transform_and_normalize(a_vecs, kernel, bias)
 b_vecs = transform_and_normalize(b_vecs, kernel, bias)
 scores = (a_vecs * b_vecs).sum(axis=1)
 # 保存结果
-with open("../prediction_result/result_whiten.tsv", "w") as fw:
+timestamp = datetime.now().strftime("%m%d")
+with open(f"../prediction_result/result_whiten_{timestamp}.tsv", "w") as fw:
     for score in scores:
         fw.write(str(score) + "\n")

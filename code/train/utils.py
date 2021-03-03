@@ -3,10 +3,10 @@ from collections import Counter
 from operator import itemgetter
 
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold, train_test_split
 
 
-def load_data(filename, has_label=False, verbose=False):
+def load_data(filename, has_label=False, pure_ids=False, verbose=False):
     texts, labels = [], []
     seq_lengths = []
     for line in open(filename, "r", encoding="utf-8"):
@@ -17,7 +17,10 @@ def load_data(filename, has_label=False, verbose=False):
         else:
             text_a, text_b = line.split("\t", 1)
         texts.append([text_a, text_b])
-        seq_lengths.append(len(text_a) + len(text_b) + 3)
+        if pure_ids:
+            seq_lengths.append(len(text_a.split(" ")) + len(text_b.split(" ")) + 3)
+        else:
+            seq_lengths.append(len(text_a) + len(text_b) + 3)
 
     seq_len_50 = int(np.mean(seq_lengths))
     seq_len_90 = np.percentile(seq_lengths, 90)
@@ -33,10 +36,22 @@ def load_data(filename, has_label=False, verbose=False):
         return texts
 
 
-def get_train_valid(texts, labels, test_size=0.05):
+def get_train_valid(texts, labels, test_size=0.05, random_state=2021):
     x_train, x_valid, y_train, y_valid = train_test_split(
-        texts, labels, stratify=labels, test_size=test_size, random_state=2021)
+        texts, labels, stratify=labels, test_size=test_size, random_state=random_state)
     return x_train, x_valid, y_train, y_valid
+
+
+def get_data(data, data_index):
+    return [data[i] for i in data_index]
+
+
+def yield_train_valid(texts, labels, nfolds=5, random_state=2021):
+    kf = StratifiedKFold(n_splits=nfolds, shuffle=True, random_state=random_state)
+    for train_index, valid_index in kf.split(texts, labels):
+        x_train, y_train = get_data(texts, train_index), get_data(labels, train_index)
+        x_valid, y_valid = get_data(texts, valid_index), get_data(labels, valid_index)
+        yield (x_train, x_valid, y_train, y_valid)
 
 
 def auc_score(y_trues, y_preds):
