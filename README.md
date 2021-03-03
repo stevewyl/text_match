@@ -1,13 +1,14 @@
 # text_match
+
 Text Match Model Zoos
 
 ## TODO
 
-1. 数据脱敏，重新构建模型
-2. Keyword-BERT
-3. Multi-task SBERT
-4. EarlyStopping Callback
-5. Cross Validation Module -> 挑选模型预测错误的样本 -> 错误分析
+1. Cross Validation Module
+2. SBERT-Scratch
+3. Wrong Analysis
+4. Multi-task SBERT
+5. Keyword-BERT
 
 ## Usage
 
@@ -39,7 +40,6 @@ SBERT              | ConstractiveLoss       | Distiluse-base-multilingual | 4-15
 SBERT              | OnlineConstractiveLoss | Distiluse-base-multilingual | 4-500           | 86.34  | 95.97   |
 SBERT              | OnlineConstractiveLoss | MacBERT-base                | 3-1500          | 88.32  | 96.99   |
 SBERT              | OnlineConstractiveLoss | Roberta-wwm-ext             | 4-2500          | 88.26  | 96.93   |
-
 
 #### Unsupervised
 

@@ -1,2 +1,4 @@
-sentence_transformers
-bert4keras
+bert4keras==0.10.0
+sentence_transformers==0.4.0
+torch==1.7.0
+transformers==4.1.1
