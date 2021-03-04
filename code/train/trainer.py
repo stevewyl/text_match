@@ -86,6 +86,8 @@ def train(data):
     base_module = "cross_encoder" if args.interactive else "sbert"
     if args.folds > 1:
         fold_suffix = f"-fold{i + 1}"
+    else:
+        fold_suffix = ""
     model_save_path = f"../user_data/model_data/{base_module}-{args.plm}-{timestamp}{fold_suffix}"
     os.makedirs(model_save_path, exist_ok=True)
     plm_name = model_full_name[args.plm]
@@ -131,8 +133,9 @@ if __name__ == "__main__":
     if args.folds > 1:
         i = 0
         for data in yield_train_valid(texts, labels, args.folds):
-            print(f"\nFold {i + 1}/{args.folds}")
+            logger.info(f"\nFold {i + 1}/{args.folds}")
             train(data)
+            i += 1
     else:
         data = get_train_valid(texts, labels)
         train(data)

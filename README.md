@@ -35,13 +35,13 @@ Model              | Loss                   | PLM                         | Best
 ------------------ | :-------------------:  | :-------------------------: | :-------------: | :----: | :-----: | :-------
 Cross-Encoder      | CELoss                 | Roberta-wwm-ext             | 3-2000          | 89.36  | 97.43   |
 Cross-Encoder      | CELoss                 | MacBERT-base                | 3-2500          | 89.86  | 97.69   |
-Cross-Encoder      | CELoss                 | BERT-scratch                | 4-1000          | 75.39  | 87.63   |
+Cross-Encoder      | CELoss                 | BERT-scratch                | 6-2500          | 76.18  | 87.86   |
 SBERT              | CosineSimilarityLoss   | Distiluse-base-multilingual | 4-2500          | 83.61  | 94.39   |
 SBERT              | ConstractiveLoss       | Distiluse-base-multilingual | 4-1500          | 86.05  | 95.93   |
 SBERT              | OnlineConstractiveLoss | Distiluse-base-multilingual | 4-500           | 86.34  | 95.97   |
 SBERT              | OnlineConstractiveLoss | MacBERT-base                | 3-1500          | 88.32  | 96.99   |
 SBERT              | OnlineConstractiveLoss | Roberta-wwm-ext             | 4-2500          | 88.26  | 96.93   |
-SBERT              | OnlineConstractiveLoss | BERT-scratch                | 4-2500          | 76.52  | 89.50   |
+SBERT              | OnlineConstractiveLoss | BERT-scratch                | 8-2500          | 77.86  | 90.73   |
 
 #### Unsupervised
 
