@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 class CrossEncoder():
-    def __init__(self, model_name:str, num_labels:int = None, max_length:int = None, device:str = None, tokenizer_args:Dict = {}, from_scratch:bool = False):
+    def __init__(self, model_name:str, num_labels:int = None, max_length:int = None,
+                 use_dropout:bool = False,
+                 device:str = None, tokenizer_args:Dict = {}, from_scratch:bool = False):
         """
         A CrossEncoder takes exactly two sentences / texts as input and either predicts
         a score or label for this sentence pair. It can for example predict the similarity of the sentence pair
@@ -50,9 +52,13 @@ class CrossEncoder():
             self.model = AutoModelForSequenceClassification.from_config(self.config)
         else:
             self.model = AutoModelForSequenceClassification.from_pretrained(model_name, config=self.config)
+        if use_dropout:
+            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
+
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, **tokenizer_args)
 
         self.max_length = max_length
+        self.use_dropout = use_dropout
 
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -166,6 +172,7 @@ class CrossEncoder():
         if isinstance(scheduler, str):
             scheduler = SentenceTransformer._get_scheduler(optimizer, scheduler=scheduler, warmup_steps=warmup_steps, t_total=num_train_steps)
 
+        # TODO: Focal & GHM Loss
         if loss_fct is None:
             loss_fct = nn.BCEWithLogitsLoss() if self.config.num_labels == 1 else nn.CrossEntropyLoss()
 
@@ -196,9 +203,13 @@ class CrossEncoder():
                 else:
                     model_predictions = self.model(**features, return_dict=True)
                     logits = acitvation_fct(model_predictions.logits)
+                    if self.use_dropout:
+                        logits = self.dropout(logits)
                     if self.config.num_labels == 1:
                         logits = logits.view(-1)
 
+                    # TODO: Multi-sample-dropout
+                    # https://github.com/thunderboom/text_similarity/blob/submit/code/bert.py
                     loss_value = loss_fct(logits, labels)
                     loss_value.backward()
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_grad_norm)

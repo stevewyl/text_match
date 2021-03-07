@@ -2,12 +2,11 @@ import argparse
 import logging
 import math
 import os
+from collections import defaultdict
 from datetime import datetime
 
 from sentence_transformers import losses
 from sentence_transformers import LoggingHandler
-from sentence_transformers.cross_encoder.evaluation import CEBinaryClassificationEvaluator
-from sentence_transformers.evaluation import BinaryClassificationEvaluator
 from sentence_transformers.evaluation import SequentialEvaluator
 from sentence_transformers.readers import InputExample
 from torch.utils.data import DataLoader
@@ -15,7 +14,7 @@ from torch.utils.data import DataLoader
 from custom.sbert import SentenceTransformer
 from custom.cross_encoder import CrossEncoder
 from utils import load_data, get_train_valid, yield_train_valid
-from evaluator import AUCEvaluator
+from evaluator import AUCEvaluator, BinaryClassificationEvaluator, CEBinaryClassificationEvaluator
 
 arg_parser = argparse.ArgumentParser(description="Supervised Text Similarity (SBERT & Cross Encoder etc.)")
 arg_parser.add_argument("-p", "--plm", type=str, default="roberta", help="pretrained language model name")
@@ -26,23 +25,26 @@ arg_parser.add_argument("-b", "--batch_size", type=int, default=64, help="traini
 arg_parser.add_argument("-es", "--eval_steps", type=int, default=500, help="evaluation steps")
 arg_parser.add_argument("-f", "--folds", type=int, default=1, help="cross validation folds, default is 1.")
 arg_parser.add_argument("-s", "--scratch", action="store_true", help="whether to train model from scratch")
-arg_parser.add_argument("-i", "--interactive", action="store_true", help="use interactive or represented model")
+arg_parser.add_argument("-i", "--interactive", action="store_true", help="use interactive or representation model")
 args = arg_parser.parse_args()
-
-# 日志
-logging.basicConfig(format='%(asctime)s - %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    level=logging.INFO,
-                    handlers=[LoggingHandler()])
-logger = logging.getLogger(__name__)
 
 model_full_name = {
     "distill": "distiluse-base-multilingual-cased",
     "roberta": "hfl/chinese-roberta-wwm-ext",
     "macbert": "hfl/chinese-macbert-base",
-    "bert_scratch": "./train/bert_scratch"
+    "bert_scratch": "./train/bert_scratch",
+    "sbert_finetuned": "../user_data/model_data/sbert-bert_scratch-2021-03-04_02-43-20/0_Transformer"
 }
+base_module = "cross_encoder" if args.interactive else "sbert"
+
+# 日志
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+log_path = f"../logs/{base_module}-{args.plm}-{timestamp}.log"
+logging.basicConfig(format='%(asctime)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    level=logging.INFO,
+                    handlers=[LoggingHandler(), logging.FileHandler(log_path)])
+logger = logging.getLogger(__name__)
 
 
 def prepare_data(data):
@@ -77,13 +79,12 @@ def get_evaluators(dev_samples, ds_name="dev"):
     return seq_evaluator
 
 
-def train(data):
+def train_evaluate(data):
     # 数据
     train_dataloader, dev_samples = prepare_data(data)
     # 评估器
-    evaluator = get_evaluators(dev_samples)
+    train_evaluator = get_evaluators(dev_samples)
     # 模型 & 训练
-    base_module = "cross_encoder" if args.interactive else "sbert"
     if args.folds > 1:
         fold_suffix = f"-fold{i + 1}"
     else:
@@ -99,12 +100,13 @@ def train(data):
         # TODO: 默认CEloss，支持其他loss
         model.fit(
             train_dataloader=train_dataloader,
-            evaluator=evaluator,
+            evaluator=train_evaluator,
             epochs=args.epoches,
             evaluation_steps=args.eval_steps,
             warmup_steps=warmup_steps,
             output_path=model_save_path
         )
+        best_model = CrossEncoder(model_save_path)
     else:
         model = SentenceTransformer(plm_name, from_scratch=args.scratch, max_length=args.max_length)
         # 损失函数
@@ -118,12 +120,16 @@ def train(data):
             train_loss = losses.CosineSimilarityLoss(model)
         model.fit(
             train_objectives=[(train_dataloader, train_loss)],
-            evaluator=evaluator,
+            evaluator=train_evaluator,
             epochs=args.epoches,
             evaluation_steps=args.eval_steps,
             warmup_steps=warmup_steps,
             output_path=model_save_path
         )
+        best_model = SentenceTransformer(model_save_path)
+    final_evaluator = SequentialEvaluator(
+        train_evaluator.evaluators, main_score_function=lambda scores: scores[:])
+    return best_model.evaluate(final_evaluator)
 
 
 if __name__ == "__main__":
@@ -131,11 +137,16 @@ if __name__ == "__main__":
     texts, labels = load_data(f"../tcdata/oppo_breeno_round1_data/{data_fn}", has_label=True)
 
     if args.folds > 1:
+        auc_score, f1_score = 0, 0
         i = 0
         for data in yield_train_valid(texts, labels, args.folds):
             logger.info(f"\nFold {i + 1}/{args.folds}")
-            train(data)
+            auc_score, f1_socre = train_evaluate(data)
+            auc_score += auc_score / args.folds
+            f1_score += f1_socre / args.folds
             i += 1
+        logger.info(f"Average auc/f1 score: {f1_score * 100:.2f}/{auc_score * 100:.2f}")
     else:
         data = get_train_valid(texts, labels)
-        train(data)
+        auc_score, f1_socre = train_evaluate(data)
+        logger.info(f"Best auc/f1 score: {f1_score * 100:.2f}/{auc_score * 100:.2f}")

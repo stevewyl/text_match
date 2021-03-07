@@ -133,3 +133,5 @@ user_data/*
 prediction_result/*
 code/run.sh
 baseline*
+logs/*
+*.ipynb
