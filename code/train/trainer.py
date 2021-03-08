@@ -4,17 +4,16 @@ import math
 import os
 from collections import defaultdict
 from datetime import datetime
-
 from sentence_transformers import losses
 from sentence_transformers import LoggingHandler
 from sentence_transformers.evaluation import SequentialEvaluator
 from sentence_transformers.readers import InputExample
 from torch.utils.data import DataLoader
 
-from custom.sbert import SentenceTransformer
 from custom.cross_encoder import CrossEncoder
+from custom.evaluator import AUCEvaluator, BinaryClassificationEvaluator, CEBinaryClassificationEvaluator
+from custom.sbert import SentenceTransformer
 from utils import load_data, get_train_valid, yield_train_valid
-from evaluator import AUCEvaluator, BinaryClassificationEvaluator, CEBinaryClassificationEvaluator
 
 arg_parser = argparse.ArgumentParser(description="Supervised Text Similarity (SBERT & Cross Encoder etc.)")
 arg_parser.add_argument("-p", "--plm", type=str, default="roberta", help="pretrained language model name")
@@ -145,8 +144,8 @@ if __name__ == "__main__":
             auc_score += auc_score / args.folds
             f1_score += f1_socre / args.folds
             i += 1
-        logger.info(f"Average auc/f1 score: {f1_score * 100:.2f}/{auc_score * 100:.2f}")
+        logger.info(f"Average auc/f1 score: {auc_score:.2f}/{f1_score * 100:.2f}")
     else:
         data = get_train_valid(texts, labels)
         auc_score, f1_socre = train_evaluate(data)
-        logger.info(f"Best auc/f1 score: {f1_score * 100:.2f}/{auc_score * 100:.2f}")
+        logger.info(f"Best auc/f1 score: {auc_score:.2f}/{f1_score * 100:.2f}")

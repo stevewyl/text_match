@@ -21,12 +21,16 @@ class Predictor:
                 sentence_pairs.append([text_b, text_a])
         return sentence_pairs
 
-    def predict(self, data, batch_size=256):
+    def predict(self, filename, batch_size=256):
+        data = self.load_data(filename)
         pred_scores = self.model.predict(data, batch_size=batch_size,
                                          convert_to_numpy=True, show_progress_bar=True)
         if self.reverse:
             pred_scores = np.array([pred_scores[i:i+2] for i in range(0, pred_scores.shape[0], 2)])
             pred_scores = np.mean(pred_scores, axis=1)
+        return pred_scores
+
+    def save(self, pred_scores):
         timestamp = datetime.now().strftime("%m%d")
         with open(f"../prediction_result/result_cross_encoder_{timestamp}.tsv", "w") as fw:
             for score in pred_scores:
@@ -34,15 +38,21 @@ class Predictor:
 
 
 if __name__ == "__main__":
-    model_version = sys.argv[1]
+    base_model_version = sys.argv[1]
     test_file = sys.argv[2]
-    nfolds = int(sys.argv[3])
+    if len(sys.argv) > 3:
+        nfolds = int(sys.argv[3])
+    else:
+        nfolds = 1
 
     if nfolds < 2:
-        predictor = Predictor(model_version)
-        data = predictor.load_data(test_file)
-        predictor.predict(data)
+        predictor = Predictor(base_model_version)
+        scores = predictor.predict(test_file)
     else:
+        scores = []
         for i in range(1, nfolds + 1):
-            model_version = model_version + f"-fold{i}"
-            
+            model_version = base_model_version + f"-fold{i}"
+            predictor = Predictor(model_version)
+            scores.append(predictor.predict(test_file))
+        scores = np.mean(np.array(scores).T, axis=1)
+    predictor.save(scores)
