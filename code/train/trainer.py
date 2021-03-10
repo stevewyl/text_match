@@ -25,6 +25,7 @@ arg_parser.add_argument("-es", "--eval_steps", type=int, default=500, help="eval
 arg_parser.add_argument("-f", "--folds", type=int, default=1, help="cross validation folds, default is 1.")
 arg_parser.add_argument("-s", "--scratch", action="store_true", help="whether to train model from scratch")
 arg_parser.add_argument("-i", "--interactive", action="store_true", help="use interactive or representation model")
+arg_parser.add_argument("-a", "--augment", action="store_true", help="whether to use augmented data")
 args = arg_parser.parse_args()
 
 model_full_name = {
@@ -132,8 +133,14 @@ def train_evaluate(data):
 
 
 if __name__ == "__main__":
+    data_dir = "../tcdata/oppo_breeno_round1_data"
     data_fn = "train_id.tsv" if args.scratch else "train.tsv"
-    texts, labels = load_data(f"../tcdata/oppo_breeno_round1_data/{data_fn}", has_label=True)
+    texts, labels = load_data(f"{data_dir}/{data_fn}", has_label=True)
+    if args.augment:
+        data_fn = "train_id_aug.tsv" if args.scratch else "train_aug.tsv"
+        aug_texts, aug_labels = load_data(f"{data_dir}/{data_fn}", has_label=True)
+        texts.extend(aug_texts)
+        labels.extend(aug_labels)
 
     if args.folds > 1:
         auc_score, f1_score = 0, 0
@@ -144,8 +151,8 @@ if __name__ == "__main__":
             auc_score += auc_score / args.folds
             f1_score += f1_socre / args.folds
             i += 1
-        logger.info(f"Average auc/f1 score: {auc_score:.2f}/{f1_score * 100:.2f}")
+        logger.info(f"Average auc/f1 score: {auc_score * 100:.2f}/{f1_score:.2f}")
     else:
         data = get_train_valid(texts, labels)
         auc_score, f1_socre = train_evaluate(data)
-        logger.info(f"Best auc/f1 score: {auc_score:.2f}/{f1_score * 100:.2f}")
+        logger.info(f"Best auc/f1 score: {auc_score * 100:.2f}/{f1_score:.2f}")
